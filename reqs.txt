@@ -11,3 +11,4 @@ torch-vision
 numpy
 matplotlib
 scipy
+safetensors

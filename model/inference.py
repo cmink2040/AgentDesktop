@@ -4,11 +4,15 @@ import os
 from torchvision import transforms
 from PIL import Image
 from model.imageshot import ImageShotModel
+from safetensors.torch import load_file
 
 class CursorPredictor:
     def __init__(self, model_path="model/checkpoints/imageshot_model.pth", device=None):
         if device is None:
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            # For Mac M1/M2/M3
+            if torch.backends.mps.is_available():
+                self.device = torch.device("mps")
         else:
             self.device = device
             
@@ -16,7 +20,11 @@ class CursorPredictor:
         self.model = ImageShotModel(output_dim=2).to(self.device)
         
         if os.path.exists(model_path):
-            self.model.load_state_dict(torch.load(model_path, map_location=self.device))
+            if model_path.endswith(".safetensors"):
+                state_dict = load_file(model_path)
+                self.model.load_state_dict(state_dict)
+            else:
+                self.model.load_state_dict(torch.load(model_path, map_location=self.device))
             self.model.eval()
         else:
             print(f"Warning: Model checkpoint not found at {model_path}. Using random weights.")
