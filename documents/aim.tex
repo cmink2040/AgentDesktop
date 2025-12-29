@@ -1,0 +1,117 @@
+\documentclass[12pt]{article}
+
+% Basic Packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{cite}
+
+% Document Metadata
+\title{Aim of AgentDesktop}
+\author{NA}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+A useful way to frame the modern AI landscape is along two axes: how difficult a task is for humans and how difficult it is for machines. Notably, many capabilities that are effortless for people---perception, spatial reasoning, and embodied interaction---remain comparatively challenging for AI systems, even as AI excels in domains humans find difficult \cite{moravec1988,lake2017}. This proposal focuses on one such gap: \emph{structured visual understanding}, i.e., interpreting images that contain compositional, interactive structure and converting that understanding into reliable, executable actions. A primary instance of this challenge is computer vision over graphical user interfaces (GUIs), where the goal is not merely to ``recognize objects,'' but to identify and relate UI elements (buttons, text fields, menus, icons), infer their functional roles (affordances), and ground language instructions or plans into precise on-screen actions (clicks, drags, keyboard input) \cite{nayak2025uivision,cheng2024seeclick}.
+
+Recent advances in vision have been driven by architectures and generative models that substantially improve recognition and synthesis---including Vision Transformers (ViTs) \cite{dosovitskiy2021vit} and diffusion models \cite{ho2020ddpm,ramesh2022unclip}. However, GUI and structured-image understanding stress a different set of requirements: fine-grained spatial localization, layout reasoning, and action grounding. This gap is reflected in a growing body of benchmarks that explicitly evaluate \emph{image-based navigation} and coordinate/action prediction. Early web-interaction environments such as MiniWoB/MiniWoB++ require agents to interact with rendered screens via mouse and keyboard actions \cite{shi2017wob,liu2018webinterfaces}. More recent work continues this pixel-to-action paradigm, including models trained to follow GUI instructions where click locations are represented explicitly (e.g., discretized coordinate bins) \cite{shaw2023pix2act}. In parallel, GUI grounding benchmarks such as ScreenSpot evaluate whether a model can locate the correct target element in a screenshot given a natural language instruction \cite{cheng2024seeclick}. Moving to more realistic and high-resolution professional settings, ScreenSpot-Pro reports that existing GUI grounding approaches still perform poorly, with the best model achieving only 18.9\% on its benchmark \cite{li2025screenspotpro}. Desktop-centric evaluations further highlight the same limitations: UI-Vision provides dense annotations across 83 real-world desktop applications (bounding boxes, labels, and action trajectories such as clicks, drags, and typing) and defines tasks for Element Grounding, Layout Grounding, and Action Prediction; its evaluations expose persistent failures in spatial reasoning and complex interactions such as drag-and-drop \cite{nayak2025uivision}. Complementary agent benchmarks (e.g., WebArena, Mind2Web, and Windows Agent Arena) reinforce that reliable end-to-end computer use requires robust screen understanding and grounded interaction, not just recognition \cite{zhou2023webarena,deng2023mind2web,bonatti2024windowsagentarena}.
+
+These limitations restrict AI systems from performing many high-value tasks that inherently involve interacting with software: automated testing, user assistance, and robotic process automation. We argue that building computer vision models capable of interpreting structured data in images---and grounding that understanding into reliable, low-level UI actions---can unlock entire domains of automation.
+
+For example, within software development life-cycle workflows, AI systems could operate in a sandboxed environment to extensively test applications by navigating forms, clicking buttons, and verifying outputs. In user assistance scenarios, AI could help users navigate complex software by understanding UI layout and providing context-aware guidance, or even performing tasks on a user's behalf. More broadly, improving structured visual understanding also supports native interpretation of structured scientific visuals (e.g., charts and plots embedded in technical documents), enabling AI systems to extract and act on information presented in non-textual formats. In other words, by addressing the challenge of structured visual understanding, we can significantly enhance the practical capabilities of AI systems.
+
+\section{References}
+\begin{thebibliography}{99}
+
+\bibitem{moravec1988}
+Hans Moravec.
+\newblock \emph{Mind Children: The Future of Robot and Human Intelligence}.
+\newblock Harvard University Press, 1988.
+
+\bibitem{lake2017}
+Brenden M. Lake, Tomer D. Ullman, Joshua B. Tenenbaum, and Samuel J. Gershman.
+\newblock Building machines that learn and think like people.
+\newblock \emph{Behavioral and Brain Sciences}, 40:e253, 2017.
+\newblock \url{https://doi.org/10.1017/S0140525X16001837}.
+
+\bibitem{dosovitskiy2021vit}
+Alexey Dosovitskiy, Lucas Beyer, Alexander Kolesnikov, Dirk Weissenborn, Xiaohua Zhai, Thomas Unterthiner, Mostafa Dehghani, Matthias Minderer, Georg Heigold, Sylvain Gelly, Jakob Uszkoreit, and Neil Houlsby.
+\newblock An image is worth 16x16 words: Transformers for image recognition at scale.
+\newblock In \emph{International Conference on Learning Representations (ICLR)}, 2021.
+\newblock arXiv:2010.11929. \url{https://arxiv.org/abs/2010.11929}.
+
+\bibitem{ho2020ddpm}
+Jonathan Ho, Ajay Jain, and Pieter Abbeel.
+\newblock Denoising diffusion probabilistic models.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)}, 2020.
+\newblock arXiv:2006.11239. \url{https://arxiv.org/abs/2006.11239}.
+
+\bibitem{ramesh2022unclip}
+Aditya Ramesh, Prafulla Dhariwal, Alex Nichol, Casey Chu, and Mark Chen.
+\newblock Hierarchical text-conditional image generation with CLIP latents.
+\newblock 2022.
+\newblock arXiv:2204.06125. \url{https://arxiv.org/abs/2204.06125}.
+
+\bibitem{shi2017wob}
+Tianlin~Tim Shi, Andrej Karpathy, Lin~Xiao, and Percy Liang.
+\newblock World of Bits: An open-domain platform for web-based agents.
+\newblock In \emph{Proceedings of the 34th International Conference on Machine Learning (ICML)}, 2017.
+\newblock \url{https://proceedings.mlr.press/v70/shi17a/shi17a.pdf}.
+
+\bibitem{liu2018webinterfaces}
+Evan Zheran Liu, Kelvin Guu, Panupong Pasupat, Tianlin Shi, and Percy Liang.
+\newblock Reinforcement learning on web interfaces using workflow-guided exploration.
+\newblock In \emph{International Conference on Learning Representations (ICLR)}, 2018.
+\newblock arXiv:1802.08802. \url{https://arxiv.org/abs/1802.08802}.
+
+\bibitem{shaw2023pix2act}
+Peter Shaw, Ming-Wei Chang, and Kenton Lee.
+\newblock Learning to follow instructions via graphical user interfaces.
+\newblock 2023.
+\newblock arXiv:2306.00245. \url{https://arxiv.org/abs/2306.00245}.
+
+\bibitem{cheng2024seeclick}
+Kanzhi Cheng, Qiushi Sun, Yougang Chu, Fangzhi Xu, Yantao Li, Jianbing Zhang, and Zhiyong Wu.
+\newblock SeeClick: Harnessing GUI grounding for advanced visual GUI agents.
+\newblock In \emph{Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (ACL)}, 2024.
+\newblock arXiv:2401.10935. \url{https://arxiv.org/abs/2401.10935}.
+
+\bibitem{li2025screenspotpro}
+Kaixin Li \emph{et al.}
+\newblock ScreenSpot-Pro: GUI grounding for professional high-resolution computer use.
+\newblock 2025.
+\newblock arXiv:2504.07981. \url{https://arxiv.org/abs/2504.07981}.
+
+\bibitem{nayak2025uivision}
+Shravan Nayak, Xiangru Jian, Kevin Qinghong Lin, Juan A. Rodriguez, Montek Kalsi, Rabiul Awal, Nicolas Chapados, M. Tamer \"Ozsu, Aishwarya Agrawal, David Vazquez, Christopher Pal, Perouz Taslakian, Spandana Gella, and Sai Rajeswar.
+\newblock UI-Vision: A desktop-centric GUI benchmark for visual perception and interaction.
+\newblock In \emph{Proceedings of the 42nd International Conference on Machine Learning (ICML)}, 2025.
+\newblock arXiv:2503.15661. \url{https://arxiv.org/abs/2503.15661}.
+
+\bibitem{zhou2023webarena}
+Shuai Zhou \emph{et al.}
+\newblock WebArena: A realistic web environment for building autonomous agents.
+\newblock 2023.
+\newblock arXiv:2307.13854. \url{https://arxiv.org/abs/2307.13854}.
+
+\bibitem{deng2023mind2web}
+Xiang Deng \emph{et al.}
+\newblock Mind2Web: Towards a generalist agent for the web.
+\newblock 2023.
+\newblock arXiv:2306.06070. \url{https://arxiv.org/abs/2306.06070}.
+
+\bibitem{bonatti2024windowsagentarena}
+Rogerio Bonatti \emph{et al.}
+\newblock Windows Agent Arena: Evaluating multi-modal OS agents at scale.
+\newblock 2024.
+\newblock arXiv:2409.08264. \url{https://arxiv.org/abs/2409.08264}.
+
+\end{thebibliography}
+
+\end{document}
