@@ -1,7 +1,8 @@
 import tkinter as tk
 import random
 import math
-import pyscreenshot as ImageGrab
+import mss
+import mss.tools
 
 class VDesktop(tk.Tk):
     def __init__(self, agent):
@@ -31,7 +32,7 @@ class VDesktop(tk.Tk):
                 if all(math.hypot(x - x2, y - y2) > min_dist for x2, y2 in positions):
                     positions.append((x, y))
                     break
-            btn = tk.Button(self.canvas, bg=color, width=4, height=2)
+            btn = tk.Frame(self.canvas, bg=color, width=40, height=30, bd=2, relief="raised")
             win_id = self.canvas.create_window(x, y, window=btn)
             self.button_data.append((win_id, color))
 
@@ -126,10 +127,14 @@ class VDesktop(tk.Tk):
         self.update_idletasks()
         x1 = self.winfo_rootx()
         y1 = self.winfo_rooty()
-        x2 = x1 + self.winfo_width()
-        y2 = y1 + self.winfo_height()
-        img = ImageGrab.grab(bbox=(x1, y1, x2, y2))
-        img.save("img/tk_window.png")
+        width = self.winfo_width()
+        height = self.winfo_height()
+
+        with mss.mss() as sct:
+            monitor = {"top": y1, "left": x1, "width": width, "height": height}
+            output = "img/tk_window.png"
+            sct_img = sct.grab(monitor)
+            mss.tools.to_png(sct_img.rgb, sct_img.size, output=output)
 
     def on_submit(self, event=None):
         text = self.entry.get()

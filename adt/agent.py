@@ -2,6 +2,25 @@ import os
 from google import genai
 from PIL import Image, ImageDraw
 import re
+from dotenv import load_dotenv
+
+# load .env (if present) into environment
+load_dotenv()
+
+
+def _get_api_key() -> str:
+    """Return API key from environment or raise a clear error.
+
+    Checks common variable names so the project supports both direct
+    environment variables and a .env file loaded by python-dotenv.
+    """
+    # prefer explicit API_KEY, then other common names
+    key = os.getenv("API_KEY") or os.getenv("GENAI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+    if not key:
+        raise RuntimeError(
+            "API key not found. Set environment variable API_KEY or create a .env file with API_KEY=your_key"
+        )
+    return key
 
 class Agent:
     def __init__(self, arrsize=100):
@@ -34,7 +53,7 @@ class Agent:
 
 
     def ask(self, cmd: str, img_path: str) -> str:
-        client = genai.Client(api_key=os.environ["API_KEY"])
+        client = genai.Client(api_key=_get_api_key())
         self.draw_grid(img_path, "img/grid.png")
 
         image = Image.open("img/grid.png")
@@ -47,14 +66,14 @@ Here is your goal: {cmd}
 Output a specific list of actions of [click] or [move left/down/up/right amount], or state NA if not possible. An example output may be Response: [move right 1, move left 20, click]. Only include the list of actions and nothing else. Now go."""
 
         response = client.models.generate_content(
-            model="gemini-2.5-flash-preview-05-20",
+            model="gemini-3-flash-preview",
             contents=[image, prompt]
         )
         return self.parse_moves(response.text)
 
 
     def consult(self, cmd: str, img_path: str) -> str:
-        client = genai.Client(api_key=os.environ["API_KEY"])
+        client = genai.Client(api_key=_get_api_key())
         self.draw_grid(img_path, "img/grid.png")
 
         image = Image.open("img/grid.png")
@@ -62,7 +81,7 @@ Output a specific list of actions of [click] or [move left/down/up/right amount]
         prompt = f"You are a model specializing in GUI work. Attached is an image and an instruction. The image has a grid of red lines of it, each symbolizing {self.arrsize}  pixels. The cursor is that of a black square. Here is the instruction: {cmd}. How much red squares do you think you need to move the cursor to complete the instruction? Now let's say you can only move 10px. How many of those 10px moves do you need?"
 
         response = client.models.generate_content(
-            model="gemini-2.5-flash-preview-05-20",
+            model="gemini-3-flash-preview",
             contents=[image, prompt]
         )
         return response.text

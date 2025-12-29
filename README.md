@@ -6,7 +6,7 @@ VDesktop is a virtualized, proof-of-concept application designed for pure GUI ra
 While VDesktop is extremely simple, it will progressively get more and more complex till it represents a real application, in which case a real world OS implementation may be made.
 
 ## Usage
-To run, setup Gemini API keys with ```cat "export GAPI_URL=yourAPIKEY" > .env```. Then install the reqs.txt. 
+To run, setup Gemini API keys with ```echo "API_KEY=yourAPIKEY" > .env```. Then install the reqs.txt. 
 
 Run ```python -m adt.main```.
 
