@@ -186,13 +186,21 @@ def mock_env_setup():
     
     return target_rect, img_path, f"click {target_color}"
 
-def get_model_agent():
+def get_model_agent(model_path="model/checkpoints/imageshot_model.pth", use_grid=False):
     from model.inference import CursorPredictor
-    predictor = CursorPredictor()
+    from adt.utility import draw_grid
+    
+    predictor = CursorPredictor(model_path=model_path)
     
     def model_agent_func(instruction, img_path):
+        # If using grid model, we must superimpose grid first
+        inference_img_path = img_path
+        if use_grid:
+            inference_img_path = "img/benchmark_grid_temp.png"
+            draw_grid(img_path, inference_img_path, arrsize=100)
+
         # Model ignores instruction, just predicts movement
-        dx, dy = predictor.predict(img_path)
+        dx, dy = predictor.predict(inference_img_path)
         # Convert dx, dy to "move" actions
         # dx, dy are pixels. Agent moves in 10px steps.
         actions = []
@@ -226,7 +234,7 @@ def get_default_agent():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run Agent Benchmark")
     parser.add_argument("--tests", type=int, default=5, help="Number of tests to run")
-    parser.add_argument("--agent", type=str, default="default", choices=["default", "model", "hybrid"], help="Agent to use")
+    parser.add_argument("--agent", type=str, default="default", choices=["default", "model", "hybrid", "grid", "all"], help="Agent to use")
     
     args = parser.parse_args()
     
@@ -236,9 +244,15 @@ if __name__ == "__main__":
         agents["Gemini"] = get_default_agent()
     elif args.agent == "model":
         agents["ImageShot"] = get_model_agent()
+    elif args.agent == "grid":
+        agents["ImageShot-Grid"] = get_model_agent(model_path="model/checkpoints/imageshot_grid.safetensors", use_grid=True)
     elif args.agent == "hybrid":
         agents["Gemini"] = get_default_agent()
         agents["ImageShot"] = get_model_agent()
+    elif args.agent == "all":
+        agents["Gemini"] = get_default_agent()
+        agents["ImageShot"] = get_model_agent()
+        agents["ImageShot-Grid"] = get_model_agent(model_path="model/checkpoints/imageshot_grid.safetensors", use_grid=True)
 
     benchmark = Benchmark(agents, mock_env_setup)
     benchmark.run(num_tests=args.tests)

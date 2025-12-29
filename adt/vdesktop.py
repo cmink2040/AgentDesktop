@@ -78,7 +78,7 @@ class VDesktop(tk.Tk):
 
         # Mode selection
         self.mode_var = tk.StringVar(value="Gemini")
-        modes = ["Gemini", "ImageShot", "Hybrid"]
+        modes = ["Gemini", "ImageShot", "ImageShot-Grid", "Hybrid"]
         mode_menu = tk.OptionMenu(iv, self.mode_var, *modes)
         mode_menu.pack(side="left", padx=5)
 

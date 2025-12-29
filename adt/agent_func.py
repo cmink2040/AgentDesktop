@@ -7,11 +7,17 @@ class Agent:
     def __init__(self, arrsize=100):
         self.arrsize = arrsize
         self.predictor = None
+        self.grid_predictor = None
 
     def _get_predictor(self):
         if self.predictor is None:
             self.predictor = CursorPredictor()
         return self.predictor
+
+    def _get_grid_predictor(self):
+        if self.grid_predictor is None:
+            self.grid_predictor = CursorPredictor(model_path="model/checkpoints/imageshot_grid.safetensors")
+        return self.grid_predictor
 
     def _actions_to_dxdy(self, actions):
         dx, dy = 0, 0
@@ -58,6 +64,7 @@ class Agent:
         points = []
         gemini_actions = []
         imageshot_actions = []
+        grid_actions = []
 
         # Run Gemini if needed
         if mode in ["Gemini", "Hybrid"]:
@@ -87,9 +94,20 @@ Output a specific list of actions of [click] or [move left/down/up/right amount]
             imageshot_actions = self._dxdy_to_actions(idx, idy)
             points.append({"label": "ImageShot", "dx": idx, "dy": idy, "color": "green"})
 
+        # Run ImageShot-Grid if needed
+        if mode in ["ImageShot-Grid"]:
+            pred = self._get_grid_predictor()
+            # Must superimpose grid first
+            draw_grid(img_path, "img/grid_temp.png", self.arrsize)
+            idx, idy = pred.predict("img/grid_temp.png")
+            grid_actions = self._dxdy_to_actions(idx, idy)
+            points.append({"label": "ImageShot-Grid", "dx": idx, "dy": idy, "color": "purple"})
+
         # Decide which actions to return
         if mode == "ImageShot":
             return imageshot_actions, points
+        elif mode == "ImageShot-Grid":
+            return grid_actions, points
         elif mode == "Hybrid":
             # For Hybrid, we return Gemini actions but show both points
             return gemini_actions, points
