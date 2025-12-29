@@ -1,6 +1,6 @@
 import time
 
-from adt.agent import Agent
+from adt.agent_func import Agent
 from adt.vdesktop import VDesktop
 
 

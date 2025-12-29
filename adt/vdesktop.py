@@ -76,6 +76,12 @@ class VDesktop(tk.Tk):
         # bind Enter key to on_submit
         self.entry.bind("<Return>", self.on_submit)
 
+        # Mode selection
+        self.mode_var = tk.StringVar(value="Gemini")
+        modes = ["Gemini", "ImageShot", "Hybrid"]
+        mode_menu = tk.OptionMenu(iv, self.mode_var, *modes)
+        mode_menu.pack(side="left", padx=5)
+
         btn_submit = tk.Button(iv, text="Submit", width=8, command=self.on_submit)
         btn_back   = tk.Button(iv, text="Manual Mode", width=8, command=self.show_controls)
         btn_submit.pack(side="left", padx=5)
@@ -143,8 +149,27 @@ class VDesktop(tk.Tk):
         self.screenshot()
 
         if text != "":
-        
-            output = self.agent.ask(text, "img/tk_window.png")
+            # Clear previous debug markers
+            self.canvas.delete("debug_marker")
+            
+            output, points = self.agent.ask(text, "img/tk_window.png", mode=self.mode_var.get())
+            
+            # Draw debug points
+            cx, cy = self.canvas.coords(self.cursor)
+            # coords returns center because it's a window object? No, create_window coords are center.
+            # Wait, create_window coords are where the window is placed.
+            # Let's verify. Yes, create_window(x, y, ...) places center at x,y by default.
+            
+            for p in points:
+                dx, dy = p['dx'], p['dy']
+                tx, ty = cx + dx, cy + dy
+                color = p['color']
+                # Draw a small circle
+                r = 5
+                self.canvas.create_oval(tx-r, ty-r, tx+r, ty+r, fill=color, outline="white", width=2, tags="debug_marker")
+                # Draw label
+                self.canvas.create_text(tx, ty-15, text=p['label'], fill=color, font=("Arial", 8), tags="debug_marker")
+
             debug = self.agent.consult(text, "img/tk_window.png")
             print(f"Response: {output} | DEBUG: {debug}")
             print(output)
