@@ -14,12 +14,8 @@ def _get_api_key() -> str:
     Checks common variable names so the project supports both direct
     environment variables and a .env file loaded by python-dotenv.
     """
-    # prefer explicit API_KEY, then other common names
-    key = os.getenv("API_KEY") or os.getenv("GENAI_API_KEY") or os.getenv("GOOGLE_API_KEY")
-    if not key:
-        raise RuntimeError(
-            "API key not found. Set environment variable API_KEY or create a .env file with API_KEY=your_key"
-        )
+    
+    key = os.environ["API_KEY"]
     return key
 
 class Agent:
