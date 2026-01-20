@@ -46,6 +46,7 @@ class UIVisionDataset(Dataset):
         self.instance_mode = instance_mode
         self.max_instances = max_instances
         self.split = split
+        self.class_to_id: Dict[str, int] = {"__background__": 0}
 
         # Auto-download
         if download and not os.path.exists(root_dir):
@@ -74,7 +75,9 @@ class UIVisionDataset(Dataset):
             print(f"Warning: {self.ann_dir} not found. Checking if flat...")
         
         self.items = self._load_index()
+        self.num_classes = len(self.class_to_id)
         print(f"Loaded {len(self.items)} samples from {split}")
+        print(f"Detected {self.num_classes - 1} classes (plus background)")
 
     def _load_index(self) -> List[Dict]:
         """
@@ -150,7 +153,11 @@ class UIVisionDataset(Dataset):
                         pass
                     
                     grouped[full_img_path]['boxes'].append([x1, y1, x2, y2])
-                    grouped[full_img_path]['classes'].append(1) # Default class 1
+                    # Resolve class label
+                    class_name = entry.get("category") or entry.get("element_type") or entry.get("label") or "unknown"
+                    if class_name not in self.class_to_id:
+                        self.class_to_id[class_name] = len(self.class_to_id)
+                    grouped[full_img_path]['classes'].append(self.class_to_id[class_name])
 
         # Convert back to list format for dataset
         items = []
@@ -187,11 +194,11 @@ class UIVisionDataset(Dataset):
         # 0 = background
         h_out, w_out = self.img_size
         gt_mask = torch.zeros((h_out, w_out), dtype=torch.long)
+        sem_mask = torch.zeros((h_out, w_out), dtype=torch.long)
         
         # Comp Targets (if using classification)
         # We also need to return the strict list of classes matching the mask IDs
         # This is tricky because rasterization might hide some small boxes behind big ones.
-        # We process boxes Smallest to Largest usually? No, Largest to Smallest usually hides small ones?
         # Actually in UI, Small buttons are on TOP of Big Windows. 
         # So we paint Largest First, Smallest Last.
         
@@ -228,31 +235,24 @@ class UIVisionDataset(Dataset):
                 continue
                 
             # Paint
+            # Use instance ID if mode is True, else use Class ID for main mask
             val = current_id if self.instance_mode else cls_id
             
             # Simple rectangle fill
             # Optim: could do this with tensor ops if many boxes
             gt_mask[y1:y2, x1:x2] = val
+            sem_mask[y1:y2, x1:x2] = cls_id
             
             if self.instance_mode:
                 active_classes[current_id] = cls_id
                 current_id += 1
-                
-        # Prepare component targets (for M4 task loss)
-        # We need a tensor [K] where K is model's max components.
-        # The model predicts K components. We need to match them during training?
-        # GCA M3 does unsupervised grouping mostly based on the Mask. 
-        # The 'comp_targets' in training.py expects [B, K] but that implies we know WHICH output slot is which.
-        # Actually GCA usually uses Hungarian matching or just pixel-level gathering.
-        # If training.py uses `sample_labels_at_positions`, it just needs `gt_mask`.
-        # `comp_targets` is only for the Semantic Head Classification (M4).
-        
-        # If we are in instance mode, `gt_mask` has IDs 1..N.
-        # If we are in semantic mode, `gt_mask` has Classes 1..C.
+                if current_id >= self.max_instances:
+                   break
         
         return {
             "image": img_t,
             "gt_mask": gt_mask,
+            "sem_mask": sem_mask,
             # "comp_targets": ... (Optional, can be derived if we have fixed assignment)
         }
 

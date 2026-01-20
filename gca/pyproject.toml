@@ -12,9 +12,24 @@ dependencies = [
     "pillow",
     "datasets",
     "huggingface_hub",
-    "tqdm"
+    "tqdm",
+    "matplotlib>=3.10.8",
+    "safetensors",
 ]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true
+
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cu130", marker = "sys_platform != 'darwin'" },
+]
+torchvision = [
+    { index = "pytorch-cu130", marker = "sys_platform != 'darwin'" },
+]
