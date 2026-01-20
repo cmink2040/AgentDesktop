@@ -5,6 +5,7 @@ import datetime
 import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+from safetensors.torch import save_file
 
 from models import GCAEnd2EndModel, ModelConfig
 from training import Trainer, TrainConfig
@@ -18,6 +19,9 @@ def main():
     parser.add_argument("--epochs", type=int, default=10)
     parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu")
     parser.add_argument("--save_dir", type=str, default="checkpoints")
+    default_workers = 0 if os.name == "nt" else 4
+    parser.add_argument("--num_workers", type=int, default=default_workers, help="DataLoader workers (use 0 on Windows if you hit WinError 1455)")
+    parser.add_argument("--resume_from", type=str, default=None, help="Path to checkpoint to resume from (safetensors or pth)")
     args = parser.parse_args()
 
     # 1. Setup Data
@@ -26,7 +30,7 @@ def main():
         root_dir=args.data_dir,
         split="element_grounding", 
         img_size=(1024, 1024),
-        instance_mode=True,  # Important for GCA grouping
+        instance_mode=True,  # Important for GCA grouping to work on instances
         download=True
     )
     
@@ -35,8 +39,31 @@ def main():
     val_size = len(dataset) - train_size
     train_data, val_data = torch.utils.data.random_split(dataset, [train_size, val_size])
     
-    train_loader = DataLoader(train_data, batch_size=args.batch_size, shuffle=True, num_workers=0, drop_last=True)
-    val_loader = DataLoader(val_data, batch_size=args.batch_size, shuffle=False, num_workers=0)
+    # Enable pin_memory for faster data transfer to CUDA
+    # Increase workers to offload CPU tasks (image load, resizing, mask generation)
+    # On Windows, keep it conservative (e.g. 2-4). On Linux, can go higher.
+    num_workers = args.num_workers
+    use_pin_memory = "cuda" in args.device
+    
+    train_loader = DataLoader(
+        train_data, 
+        batch_size=args.batch_size, 
+        shuffle=True, 
+        num_workers=num_workers, 
+        prefetch_factor=2 if num_workers > 0 else None,
+        drop_last=True, 
+        pin_memory=use_pin_memory,
+        persistent_workers=(num_workers > 0) # Keep workers alive between epochs
+    )
+    val_loader = DataLoader(
+        val_data, 
+        batch_size=args.batch_size, 
+        shuffle=False, 
+        num_workers=num_workers, 
+        prefetch_factor=2 if num_workers > 0 else None,
+        pin_memory=use_pin_memory,
+        persistent_workers=(num_workers > 0)
+    )
     
     print(f"Train samples: {len(train_data)}, Val samples: {len(val_data)}")
 
@@ -48,21 +75,32 @@ def main():
         d_model=256,
         n_max=4096,
         k_components=256, # We learn up to 256 active components per screen
-        num_classes=64,   # Or whatever class count UI-Vision has + background
+        num_classes=dataset.num_classes,   # From dataset categories (incl. background)
     )
     model = GCAEnd2EndModel(model_cfg)
+    # Resume weights if requested
+    if args.resume_from:
+        print(f"Resuming weights from {args.resume_from}...")
+        if args.resume_from.endswith(".safetensors"):
+            from safetensors.torch import load_file
+            state_dict = load_file(args.resume_from)
+            model.load_state_dict(state_dict)
+        else:
+            # Fallback for old .pth
+            model.load_state_dict(torch.load(args.resume_from, map_location="cpu"))
     
+    # 
     # 3. Setup Trainer
     train_cfg = TrainConfig(
         lr=args.lr,
-        amp=(args.device == "cuda"),
-        num_seg_labels=512, # Must encompass max instance ID in dataset
+        # Check if "cuda" is in device string (e.g. "cuda:0") for AMP
+        amp=("cuda" in args.device),
+        num_seg_labels=dataset.num_classes, # Matches class labels in gt_mask
     )
     trainer = Trainer(model, train_cfg, torch.device(args.device))
     
     # 4. Loop
     os.makedirs(args.save_dir, exist_ok=True)
-    
     for epoch in range(args.epochs):
         print(f"\nEpoch {epoch+1}/{args.epochs}")
         
@@ -78,6 +116,7 @@ def main():
         print(f"Train Loss: {avg_train['total']:.4f} | M2: {avg_train['m2_alloc']:.4f} | M3: {avg_train['m3_purity']:.4f}")
         
         # Eval
+        val_loss = float('inf')
         if len(val_data) > 0:
             val_metrics = []
             with torch.no_grad():
@@ -85,12 +124,18 @@ def main():
                     log = trainer.eval_step(batch)
                     val_metrics.append(log)
             avg_val = {k: sum(d[k] for d in val_metrics)/len(val_metrics) for k in val_metrics[0].keys()}
-            print(f"Val Loss:   {avg_val['total']:.4f}")
-        
-        # Save
-        path = os.path.join(args.save_dir, f"gca_epoch_{epoch+1}.pth")
-        torch.save(model.state_dict(), path)
-        print(f"Saved to {path}")
+            val_loss = avg_val['total']
+            print(f"Val Loss:   {val_loss:.4f}")
+
+        # Save snapshot each epoch
+        snapshot_path = os.path.join(args.save_dir, f"gca-snapshot-{epoch+1}.safetensors")
+        save_file(model.state_dict(), snapshot_path)
+        print(f"Snapshot saved to {snapshot_path}")
+
+    # Save final model once after all epochs
+    final_path = os.path.join(args.save_dir, "gca.safetensors")
+    save_file(model.state_dict(), final_path)
+    print(f"Saved final model to {final_path}")
 
 if __name__ == "__main__":
     main()

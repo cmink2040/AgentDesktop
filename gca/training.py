@@ -37,17 +37,19 @@ class Trainer:
             lr=cfg.lr,
             weight_decay=cfg.weight_decay,
         )
-        self.scaler = torch.cuda.amp.GradScaler(enabled=(cfg.amp and device.type == "cuda"))
+        self.scaler = torch.amp.GradScaler("cuda", enabled=(cfg.amp and device.type == "cuda"))
 
     def train_step(self, batch: Dict[str, torch.Tensor]) -> Dict[str, float]:
         """
         Expected batch keys:
           - image: [B,3,H,W] float
           - gt_mask: [B,H,W] long (seg labels)  (used for M2/M3 losses)
+          - sem_mask: [B,H,W] long (semantic class labels) (used for M4 supervision)
           - comp_targets: OPTIONAL [B,K] long (component classes) for task CE
         """
         image = batch["image"].to(self.device)
         gt_mask = batch["gt_mask"].to(self.device)
+        sem_mask = batch["sem_mask"].to(self.device)
 
         comp_targets = batch.get("comp_targets")
         if comp_targets is not None:
@@ -64,6 +66,7 @@ class Trainer:
                 comps=out.learned.comps,
                 sem=out.learned.sem,
                 gt_mask=gt_mask,
+                sem_mask=sem_mask,
                 comp_targets=comp_targets,
                 num_labels=self.cfg.num_seg_labels,
                 weights=self.cfg.weights,
@@ -86,6 +89,7 @@ class Trainer:
     def eval_step(self, batch: Dict[str, torch.Tensor]) -> Dict[str, float]:
         image = batch["image"].to(self.device)
         gt_mask = batch["gt_mask"].to(self.device)
+        sem_mask = batch["sem_mask"].to(self.device)
         comp_targets = batch.get("comp_targets")
         if comp_targets is not None:
             comp_targets = comp_targets.to(self.device)
@@ -98,6 +102,7 @@ class Trainer:
             comps=out.learned.comps,
             sem=out.learned.sem,
             gt_mask=gt_mask,
+            sem_mask=sem_mask,
             comp_targets=comp_targets,
             num_labels=self.cfg.num_seg_labels,
             weights=self.cfg.weights,
