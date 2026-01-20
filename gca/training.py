@@ -56,7 +56,7 @@ class Trainer:
         self.model.train()
         self.optim.zero_grad(set_to_none=True)
 
-        with torch.cuda.amp.autocast(enabled=(self.scaler.is_enabled())):
+        with torch.amp.autocast('cuda', enabled=(self.scaler.is_enabled())):
             out = self.model(image)
 
             total, named = compute_losses(

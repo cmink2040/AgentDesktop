@@ -78,10 +78,8 @@ class SystemState:
     hard_assign: Optional[Tensor] = None             # [B, N] long detached
     comp_boxes_hard: Optional[Tensor] = None         # [B, K, 4] detached (inactive comps ok)
     pred_classes_hard: Optional[Tensor] = None       # [B, K] long detached
-    component_ids: Optional[Any] = None              # list/dict
-    ocr_regions: Optional[Any] = None                # list/dict
+    component_ids: Optional[Any] = None              # [B, K] long, persistent IDs
     deltas: Optional[Any] = None                     # list/dict
-    ui_graph: Optional[Any] = None                   # list/dict
     meta: Dict[str, Any] = field(default_factory=dict)
 
 
