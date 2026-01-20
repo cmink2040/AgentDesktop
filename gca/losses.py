@@ -176,7 +176,10 @@ def loss_m3_purity(comps: Components, g: Tensor, num_labels: int) -> Tensor:
     b, n, k = A.shape
 
     # One-hot token labels: [B,N,C]
-    oh = F.one_hot(g.clamp_min(0), num_classes=num_labels).float()
+    if num_labels < 1:
+        num_labels = 1
+    g_clamped = g.clamp(0, num_labels - 1)
+    oh = F.one_hot(g_clamped, num_classes=num_labels).float()
 
     # q[b,k,c] = sum_n A[b,n,k] * oh[b,n,c]
     q = torch.einsum("bnk,bnc->bkc", A, oh)
@@ -204,11 +207,39 @@ def loss_task_component_ce(sem: Semantics, comp_targets: Tensor, ignore_index: i
     )
 
 
+def derive_component_targets(comps: Components, g: Tensor, num_labels: int) -> Tensor:
+    """
+    Dynamically assign classification targets to components based on which GT label
+    they heavily attend to.
+
+    comps.assign_probs: [B, N, K]
+    g: [B, N] (GT labels at token positions)
+    
+    Returns: [B, K] long (target class IDs)
+    """
+    batch, n, k = comps.assign_probs.shape
+    
+    # 1. Create One-Hot GT: [B, N, C]
+    # Ensure g is in valid range
+    g_clamped = g.clamp(0, num_labels - 1)
+    g_oh = F.one_hot(g_clamped, num_classes=num_labels).float() # [B, N, C]
+    
+    # 2. Weighted Vote: [B, K, C]
+    # How much mass does component K assign to tokens of class C?
+    # votes[b, k, c] = sum_n (A[b, n, k] * g_oh[b, n, c])
+    votes = torch.einsum("bnk,bnc->bkc", comps.assign_probs, g_oh)
+    
+    # 3. Argmax to get target: [B, K]
+    derived_targets = torch.argmax(votes, dim=-1)
+    return derived_targets
+
+
 def compute_losses(
     micro: MicroTokens,
     comps: Components,
     sem: Semantics,
     gt_mask: Tensor,
+    sem_mask: Optional[Tensor],
     comp_targets: Optional[Tensor],
     num_labels: int,
     weights: LossWeights,
@@ -217,29 +248,43 @@ def compute_losses(
     """
     Returns (total_loss, dict_of_named_losses).
 
-    gt_mask: [B,H,W] integer segmentation labels for allocation/merge losses.
+    gt_mask: [B,H,W] integer segmentation labels for allocation/merge losses (usually INSTANCES).
+    sem_mask: [B,H,W] integer semantic labels for derivation (usually CLASSES).
     comp_targets: [B,K] optional component class targets for CE (if you have them).
     num_labels: number of segmentation labels in gt_mask space.
     """
     out: Dict[str, Tensor] = {}
 
     # Token-level GT labels at microtoken positions
-    g = sample_labels_at_positions(gt_mask, micro.pos)  # [B,N]
+    # g_inst: Used for Structural/Grouping losses (M2 alloc, M3 cut/purity)
+    g_inst = sample_labels_at_positions(gt_mask, micro.pos)  # [B,N]
 
     # M2 losses
     out["m2_budget"] = loss_m2_budget(micro, budget_cfg)
     out["m2_alloc"] = loss_m2_alloc(micro, gt_mask)
 
     # M3 losses
-    out["m3_cut"] = loss_m3_cut(comps, g, boundary_only=True)
+    # Purity and Cut should ideally run on Instances to separate distinct objects
+    out["m3_cut"] = loss_m3_cut(comps, g_inst, boundary_only=True)
     out["m3_compact"] = loss_m3_compact(comps, micro)
-    out["m3_purity"] = loss_m3_purity(comps, g, num_labels=num_labels)
+    # Use dynamic instance label count for purity to avoid out-of-range one_hot
+    num_labels_inst = int(g_inst.max().item()) + 1
+    out["m3_purity"] = loss_m3_purity(comps, g_inst, num_labels=num_labels_inst)
 
-    # Task loss (optional)
-    if comp_targets is not None:
-        out["task_ce"] = loss_task_component_ce(sem, comp_targets)
-    else:
-        out["task_ce"] = torch.zeros((), device=micro.tokens.device)
+    # Task loss (Dynamically Derived if not provided)
+    targets = comp_targets
+    if targets is None and sem_mask is not None:
+        # We need to act on Semantic Classes for M4
+        g_sem = sample_labels_at_positions(sem_mask, micro.pos)
+        
+        # Determine number of semantic classes from sem_mask max? 
+        # Or derive_component_targets can just take max of g_sem
+        num_sem_classes = int(g_sem.max().item()) + 1
+        
+        # "Supervised Clustering": Assign label based on majority vote of tokens
+        targets = derive_component_targets(comps, g_sem, num_sem_classes)
+        
+    out["task_ce"] = loss_task_component_ce(sem, targets) if targets is not None else torch.tensor(0.0, device=micro.tokens.device)
 
     total = (
         weights.task_ce * out["task_ce"]

@@ -200,21 +200,63 @@ class M3Merger(nn.Module):
             nn.Linear(cfg.d_model, cfg.k_components),
         )
         self.tau = nn.Parameter(torch.tensor(cfg.tau_init))
+        
+        # Spatial Anchors: [1, 1, K, 2]
+        # Initialize K components as a grid over [0,1]x[0,1]
+        # This breaks symmetry and prevents "all boxes cover everything" collapse.
+        side = int(cfg.k_components ** 0.5)
+        if side * side != cfg.k_components:
+            # Fallback for non-square K: just random or simple linspace
+            anchors = torch.rand(cfg.k_components, 2)
+        else:
+            # Nice grid
+            grid = _make_xy_grid(side, side, torch.device("cpu"), torch.float32) # [S,S,2]
+            anchors = grid.view(-1, 2)
+            
+        self.register_buffer("anchors", anchors.view(1, 1, cfg.k_components, 2))
 
     def forward(self, micro: MicroTokens) -> Components:
         x = micro.tokens
-        p = micro.pos
+        p = micro.pos # [B, N, 2]
+        
+        # Inject position info into features
         x = x + self.pos_mlp(p)
 
-        logits = self.assign_mlp(x)
-        tau = torch.clamp(self.tau, 0.1, 10.0)
-        A = F.softmax(logits / tau, dim=-1)
+        # 1. Learnable Logits: [B, N, K]
+        # "Does this token's appearance belong to Component K?"
+        logits_sem = self.assign_mlp(x)
+        
+        # 2. Spatial Bias: [B, N, K]
+        # "Is this token spatially close to Component K's anchor?"
+        # dist2: ||p - anchor||^2
+        # p: [B, N, 1, 2]
+        # anchors: [1, 1, K, 2]
+        p_expanded = p.unsqueeze(2)
+        dist2 = (p_expanded - self.anchors).pow(2).sum(dim=-1) # [B, N, K]
+        
+        # Combine: We subtract distance (closer = higher logit)
+        # Weighting the spatial term ensures initialization starts local.
+        # As training progresses, logits_sem can override spatial bias if needed.
+        # Force float32 for stability in AMP
+        with torch.amp.autocast('cuda', enabled=False):
+             ls = logits_sem.float()
+             d2 = dist2.float()
+             t_val = self.tau.float().clamp(0.1, 10.0)
+             logits = ls - 10.0 * d2
+             
+             # Clamp logits to prevent overflow in exp/softmax
+             logits = logits.clamp(-50.0, 50.0)
+
+             A = F.softmax(logits / t_val, dim=-1)
 
         mass = A.sum(dim=1)
         denom = mass.unsqueeze(-1).clamp_min(1e-6)
-        comp_tokens = torch.einsum("bnk,bnd->bkd", A, micro.tokens) / denom
-        comp_pos = torch.einsum("bnk,bnq->bkq", A, p) / mass.unsqueeze(-1).clamp_min(1e-6)
-
+        comp_tokens = torch.einsum("bnk,bnd->bkd", A, micro.tokens.float()) / denom
+        comp_pos = torch.einsum("bnk,bnq->bkq", A, p.float()) / mass.unsqueeze(-1).clamp_min(1e-6)
+        
+        # Cast back if needed, but output usually expected in model dtype. 
+        # Components can store float32 for higher precision in loss.
+        
         return Components(assign_probs=A, comp_tokens=comp_tokens, comp_mass=mass, comp_pos=comp_pos)
 
 
