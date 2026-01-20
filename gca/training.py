@@ -1,7 +1,7 @@
 # training.py
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, Optional
 
 import torch
@@ -19,8 +19,8 @@ class TrainConfig:
     amp: bool = True
 
     # Loss configs
-    weights: LossWeights = LossWeights()
-    budget: BudgetConfig = BudgetConfig(target=4096.0, slack=512.0)
+    weights: LossWeights = field(default_factory=LossWeights)
+    budget: BudgetConfig = field(default_factory=lambda: BudgetConfig(target=4096.0, slack=512.0))
 
     # Metadata
     num_seg_labels: int = 64  # label-space size for gt_mask
