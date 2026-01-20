@@ -24,7 +24,7 @@ def get_collector(platform: str, **kwargs) -> InterfaceCollector:
     elif platform == 'macos':
         return MacOSCollector()
     elif platform == 'windows':
-        return WindowsCollector()
+        return WindowsCollector(target_exe=kwargs.get('exe'), target_window_title=kwargs.get('window_title'))
     elif platform == 'android':
         return AndroidCollector(capabilities=kwargs.get('caps'))
     elif platform == 'ios':
@@ -71,6 +71,8 @@ def main():
     parser.add_argument("--output", type=str, default="collected_data")
     parser.add_argument("--label", action="store_true", help="Run semantic labeling with Qwen-VL")
     parser.add_argument("--url", type=str, help="URL for Web collector")
+    parser.add_argument("--exe", type=str, help="Path to executable for Windows collector")
+    parser.add_argument("--window-title", type=str, help="Title of window to attach to for Windows collector")
     parser.add_argument("--prefix", type=str, default="sample", help="Filename prefix")
     parser.add_argument("--visualize", action="store_true", help="Generate a debug image with red bounding boxes")
     
@@ -78,7 +80,7 @@ def main():
     
     # 1. Initialize Collector
     try:
-        collector = get_collector(args.platform, url=args.url)
+        collector = get_collector(args.platform, url=args.url, exe=args.exe, window_title=args.window_title)
     except ImportError as e:
         logging.error(f"Error initializing {args.platform}: {e}")
         sys.exit(1)
@@ -103,7 +105,7 @@ def main():
         labeler = SemanticLabeler()
         
         # Limit to reasonable number to prevent freezing on CPU/slow devices
-        limit = 10
+        limit = 50
         if len(elements) > limit:
             logging.warning(f"Notice: Limit enabled. Labeling first {limit} of {len(elements)} elements to avoid indefinite hang.")
             elements_to_label = elements[:limit]
