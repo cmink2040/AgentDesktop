@@ -1,0 +1,18 @@
+# Python / UV / Environment
+__pycache__/
+*.pyc
+.venv/
+.env
+dist/
+build/
+*.egg-info/
+.DS_Store
+._*
+
+# GCA specific
+checkpoints/
+ui_vision_data/
+dataset/
+images/
+labels.csv
+tags
