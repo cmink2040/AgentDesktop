@@ -1,0 +1,184 @@
+category,application_name,platform,notes
+education,Google Classroom,web,LMS with dashboards and assignments
+education,Canvas LMS,web,Complex academic workflows
+education,Blackboard Learn,web,Enterprise education UI
+education,Moodle,web,Highly modular LMS
+education,Schoology,web,Course-based UI
+education,Coursera,web,Video + course layouts
+education,edX,web,Academic MOOC platform
+education,Khan Academy,web,Educational content navigation
+education,Udemy,web,Marketplace-style education UI
+education,Wolfram Alpha,web,Query-driven scientific UI
+education,Desmos,web,Interactive graph canvas
+education,GeoGebra,web,Math visualization UI
+education,Overleaf,web,Collaborative LaTeX editor
+education,Jupyter Notebook,hybrid,Cell-based computation UI
+education,Google Colab,web,Notebook + execution panels
+education,MATLAB Online,web,Engineering workspace
+education,Duolingo,web,Gamified learning UI
+education,Quizlet,web,Flashcard-based UI
+
+creativity,Adobe Photoshop,hybrid,Layer-heavy creative UI
+creativity,Adobe Illustrator,desktop,Vector editing panels
+creativity,Adobe InDesign,desktop,Layout-based design UI
+creativity,Adobe Express,web,Simplified design workflows
+creativity,Canva,web,Template-driven canvas UI
+creativity,Figma,web,Collaborative design canvas
+creativity,Sketch,desktop,Design + inspector panels
+creativity,CorelDRAW,desktop,Vector illustration UI
+creativity,Affinity Designer,desktop,Professional vector UI
+creativity,Affinity Photo,desktop,Raster editing UI
+creativity,GIMP,desktop,Open-source image editor
+creativity,Krita,desktop,Brush-focused canvas UI
+creativity,Inkscape,desktop,SVG editing interface
+creativity,Adobe Premiere Pro,desktop,Timeline-based video UI
+creativity,Adobe After Effects,desktop,Node + timeline UI
+creativity,Final Cut Pro,desktop,Professional video editor
+creativity,DaVinci Resolve,desktop,Color + timeline panels
+creativity,CapCut,hybrid,Consumer video editor
+creativity,iMovie,desktop,Simplified video UI
+creativity,Blender,desktop,3D viewport-heavy UI
+creativity,Cinema 4D,desktop,3D animation tools
+creativity,Unity Editor,desktop,Game editor UI
+creativity,Unreal Engine Editor,desktop,Complex node-based editor
+creativity,Ableton Live,desktop,Music timeline UI
+creativity,FL Studio,desktop,Pattern-based music UI
+creativity,Logic Pro,desktop,Audio workstation
+creativity,Pro Tools,desktop,Professional audio UI
+creativity,GarageBand,desktop,Beginner audio UI
+creativity,Audacity,desktop,Waveform-based editing
+creativity,Soundtrap,web,Collaborative audio editor
+creativity,BandLab,web,Music creation UI
+creativity,Google Docs,web,Document editing UI
+creativity,Microsoft Word Online,web,Rich text editor
+creativity,Scrivener,desktop,Long-form writing UI
+creativity,Notion,web,Block-based editor
+creativity,Medium Editor,web,Publishing interface
+creativity,Substack Editor,web,Newsletter editor
+creativity,Wattpad Studio,web,Story editing UI
+creativity,Adobe Lightroom,hybrid,Photo management panels
+creativity,Darktable,desktop,RAW photo workflow
+creativity,Capture One,desktop,Professional photo UI
+creativity,Apple Photos,desktop,Media grid UI
+creativity,Google Photos,web,Gallery-based UI
+creativity,Webflow Designer,web,Visual web builder
+creativity,Framer,web,Design + animation UI
+creativity,Squarespace Editor,web,Site editing panels
+creativity,Wix Editor,web,Drag-and-drop UI
+creativity,WordPress Editor,web,Block-based CMS
+creativity,Elementor,web,Visual page builder
+creativity,Bubble.io,web,No-code app UI
+creativity,Glide Apps,web,Data-driven app builder
+creativity,Miro,web,Infinite canvas UI
+creativity,FigJam,web,Collaborative whiteboard
+creativity,Milanote,web,Creative board UI
+
+productivity,Google Docs,web,Collaborative documents
+productivity,Google Sheets,web,Spreadsheet grid UI
+productivity,Google Slides,web,Presentation editor
+productivity,Microsoft Word,hybrid,Enterprise document UI
+productivity,Microsoft Excel,hybrid,Dense data tables
+productivity,Microsoft PowerPoint,hybrid,Slide-based UI
+productivity,LibreOffice Writer,desktop,Open-source document UI
+productivity,LibreOffice Calc,desktop,Spreadsheet interface
+productivity,LibreOffice Impress,desktop,Presentation UI
+productivity,Notion,web,Knowledge management
+productivity,Obsidian,desktop,Markdown graph UI
+productivity,Evernote,web,Note organization UI
+productivity,OneNote,web,Notebook-style UI
+productivity,Roam Research,web,Graph-linked notes
+productivity,Apple Notes,desktop,Lightweight note UI
+productivity,Simplenote,web,Minimal notes
+productivity,Trello,web,Kanban boards
+productivity,Asana,web,Task dashboards
+productivity,ClickUp,web,All-in-one workspace
+productivity,Monday.com,web,Enterprise task UI
+productivity,Jira,web,Issue tracking UI
+productivity,Linear,web,Developer-focused tasks
+productivity,Todoist,web,Task lists
+productivity,Microsoft Planner,web,Team planning UI
+productivity,Basecamp,web,Project hub UI
+productivity,Slack,hybrid,Chat-based workspace
+productivity,Microsoft Teams,hybrid,Collaboration hub
+productivity,Zoom,hybrid,Meeting controls UI
+productivity,Google Meet,web,Video conferencing UI
+productivity,Discord,hybrid,Server-based chat UI
+productivity,Skype,hybrid,Legacy communication UI
+productivity,Google Drive,web,File manager UI
+productivity,Dropbox,web,Cloud file system
+productivity,OneDrive,web,Enterprise cloud storage
+productivity,Box,web,Business file UI
+productivity,Gmail,web,Email client UI
+productivity,Outlook Web,web,Enterprise email UI
+productivity,Yahoo Mail,web,Consumer email UI
+productivity,Visual Studio Code,hybrid,IDE layout
+productivity,GitHub,web,Code hosting dashboards
+productivity,GitLab,web,DevOps interface
+productivity,Bitbucket,web,Repository UI
+productivity,Postman,hybrid,API testing panels
+productivity,Docker Desktop,desktop,Container management UI
+productivity,Jira Service Management,web,IT service UI
+productivity,QuickBooks Online,web,Accounting dashboards
+productivity,Xero,web,Financial UI
+productivity,FreshBooks,web,Invoice workflows
+productivity,Stripe Dashboard,web,Payment analytics
+productivity,PayPal Dashboard,web,Transaction UI
+productivity,Wave Accounting,web,Small business finance
+productivity,Google Calendar,web,Time-based UI
+productivity,Calendly,web,Scheduling flows
+productivity,DocuSign,web,Document signing UI
+
+entertainment,YouTube,web,Video grid and player UI
+entertainment,Netflix,web,Streaming catalog UI
+entertainment,Amazon Prime Video,web,Media browsing UI
+entertainment,Disney+,web,Subscription streaming UI
+entertainment,Hulu,web,Ad-supported streaming
+entertainment,HBO Max,web,Premium media UI
+entertainment,Twitch,web,Live streaming dashboards
+entertainment,Vimeo,web,Video creator platform
+entertainment,Spotify Web Player,web,Music streaming UI
+entertainment,Apple Music Web,web,Music catalog UI
+entertainment,SoundCloud,web,Audio social platform
+entertainment,Pandora,web,Radio-style UI
+entertainment,Instagram Web,web,Social media feed
+entertainment,Twitter X,web,Timeline-based UI
+entertainment,Facebook,web,Social network UI
+entertainment,Reddit,web,Threaded discussion UI
+entertainment,TikTok Web,web,Vertical video feed
+entertainment,Pinterest,web,Grid-based discovery UI
+entertainment,LinkedIn Feed,web,Professional social UI
+entertainment,Tumblr,web,Blog feed UI
+entertainment,Discord,hybrid,Community chat UI
+entertainment,Steam,desktop,Game library UI
+entertainment,Epic Games Launcher,desktop,Store + launcher
+entertainment,Battle.net,desktop,Game client UI
+entertainment,Ubisoft Connect,desktop,Launcher UI
+entertainment,EA App,desktop,Game platform UI
+entertainment,GOG Galaxy,desktop,Library aggregation UI
+entertainment,Xbox App,desktop,Console companion UI
+entertainment,PlayStation App,web,Account + store UI
+entertainment,Minecraft,desktop,In-game menus UI
+entertainment,Roblox,desktop,Game hub UI
+entertainment,League of Legends Client,desktop,Game launcher UI
+entertainment,Valorant Client,desktop,Matchmaking UI
+entertainment,Fortnite,desktop,In-game UI
+entertainment,Dota 2 Client,desktop,MOBA interface
+entertainment,World of Warcraft UI,desktop,MMO HUD
+entertainment,Final Fantasy XIV UI,desktop,Complex MMO UI
+entertainment,Chess.com,web,Game + analysis UI
+entertainment,Lichess,web,Minimal chess UI
+entertainment,Agar.io,web,Simple game UI
+entertainment,Slither.io,web,Minimal interactive UI
+entertainment,Cookie Clicker,web,Incremental game UI
+entertainment,Krunker.io,web,Browser FPS UI
+entertainment,GeoGuessr,web,Map-based game UI
+entertainment,VLC Media Player,desktop,Media controls UI
+entertainment,Windows Media Player,desktop,Legacy media UI
+entertainment,Plex Web,web,Media server UI
+entertainment,Kodi,desktop,Media center UI
+entertainment,iTunes,desktop,Library-heavy UI
+entertainment,Kindle Cloud Reader,web,E-book reader UI
+entertainment,Webtoon,web,Scroll-based reading UI
+entertainment,Comixology Web,web,Comic reader UI
+entertainment,Audible Web Player,web,Audiobook UI
+entertainment,Google Play Books,web,Reading interface

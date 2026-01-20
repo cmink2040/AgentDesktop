@@ -1,0 +1,49 @@
+[project]
+name = "data-generation"
+version = "0.1.0"
+description = "Multi-platform UI Data Generator"
+readme = "Data.md"
+requires-python = ">=3.10"
+dependencies = [
+    "torch",
+    "torchvision",
+    "transformers",
+    "qwen-vl-utils",
+    "accelerate",
+    "pillow",
+    "numpy<2.0",
+    "selenium",
+    "playwright",
+    "Appium-Python-Client",
+    "setuptools",
+    # Platform specific (optional for cross-platform envs, but included for completeness)
+    "pywinauto ; sys_platform == 'win32'",
+    "pyobjc-framework-ApplicationServices ; sys_platform == 'darwin'",
+    "pyobjc-framework-Quartz ; sys_platform == 'darwin'",
+    "pyobjc-framework-LaunchServices ; sys_platform == 'darwin'",
+    "pyobjc-framework-Cocoa ; sys_platform == 'darwin'",
+    "pyobjc-core ; sys_platform == 'darwin'",
+    "pyobjc-framework-CoreServices ; sys_platform == 'darwin'",
+    "tqdm>=4.67.1",
+    "hf-xet>=1.2.0",
+]
+
+[tool.uv]
+package = false
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true
+
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cu130", marker = "sys_platform != 'darwin'" },
+]
+torchvision = [
+    { index = "pytorch-cu130", marker = "sys_platform != 'darwin'" },
+]

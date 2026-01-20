@@ -1,0 +1,5 @@
+collected_data
+.venv
+__pycache__
+
+._*
